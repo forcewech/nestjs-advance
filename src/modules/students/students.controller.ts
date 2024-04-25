@@ -1,84 +1,58 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res } from "@nestjs/common";
-import { StudentsService } from "./students.service";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, Res } from "@nestjs/common";
 import { CreateStudentDto } from "./dto/create-student.dto";
+import { ListClassDto } from "./dto/query-class.dto";
 import { UpdateStudentDto } from "./dto/update-student.dto";
+import { IStudent } from "./interfaces/student.interface";
+import { StudentsService } from "./students.service";
+
 @Controller("students")
 export class StudentsController {
   constructor(private readonly studentService: StudentsService) {}
+
   @Post()
-  async createStudent(@Res() response, @Body() createStudentDto: CreateStudentDto) {
-    try {
-      const newStudent = await this.studentService.createStudent(createStudentDto);
-      return response.status(HttpStatus.CREATED).json({
-        message: "Student has been created successfully",
-        newStudent
-      });
-    } catch (err) {
-      return response.status(HttpStatus.BAD_REQUEST).json({
-        statusCode: 400,
-        message: "Error: Student not created!",
-        error: "Bad Request"
-      });
-    }
+  async createStudent(@Body() createStudentDto: CreateStudentDto): Promise<IStudent> {
+    return this.studentService.createStudent(createStudentDto);
   }
+
   @Put("/:id")
-  async updateStudent(@Res() response, @Param("id") studentId: string, @Body() updateStudentDto: UpdateStudentDto) {
-    try {
-      const existingStudent = await this.studentService.updateStudent(studentId, updateStudentDto);
-      return response.status(HttpStatus.OK).json({
-        message: "Student has been successfully updated",
-        existingStudent
-      });
-    } catch (err) {
-      return response.status(err.status).json(err.response);
-    }
+  async updateStudent(@Param("id") studentId: string, @Body() updateStudentDto: UpdateStudentDto): Promise<IStudent> {
+    return this.studentService.updateStudent(studentId, updateStudentDto);
   }
+
   @Get()
-  async getStudents(@Res() response) {
-    try {
-      const studentData = await this.studentService.getAllStudents();
-      return response.status(HttpStatus.OK).json({
-        message: "All students data found successfully",
-        studentData
-      });
-    } catch (err) {
-      return response.status(err.status).json(err.response);
-    }
+  async getStudents(): Promise<IStudent[]> {
+    return this.studentService.getAllStudents();
   }
+
   @Get("/:id")
-  async getStudent(@Res() response, @Param("id") studentId: string) {
-    try {
-      const existingStudent = await this.studentService.getStudent(studentId);
-      return response.status(HttpStatus.OK).json({
-        message: "Student found successfully",
-        existingStudent
-      });
-    } catch (err) {
-      return response.status(err.status).json(err.response);
-    }
+  async getStudent(@Res() response, @Param("id") studentId: string): Promise<IStudent> {
+    const student = await this.studentService.getStudent(studentId);
+    await response.cookie("studenName", student.name);
+    return response.json(student);
   }
+
+  @Get("/classes/get-classes")
+  async getClass(@Query() query: ListClassDto) {
+    return this.studentService.filterClass(query.classes);
+  }
+
   @Delete("/:id")
-  async deleteStudent(@Res() response, @Param("id") studentId: string) {
-    try {
-      const deletedStudent = await this.studentService.deleteStudent(studentId);
-      return response.status(HttpStatus.OK).json({
-        message: "Student deleted successfully",
-        deletedStudent
-      });
-    } catch (err) {
-      return response.status(err.status).json(err.response);
-    }
+  async deleteStudent(@Param("id") studentId: string): Promise<IStudent> {
+    return this.studentService.deleteStudent(studentId);
   }
+
   @Get("/student-cache/:id")
-  async getStudentFromCache(@Res() response, @Param("id") studentId: string) {
-    try {
-      const existingStudent = await this.studentService.getStudentFromCache(studentId);
-      return response.status(HttpStatus.OK).json({
-        message: "Student found from cache successfully",
-        existingStudent
-      });
-    } catch (err) {
-      return response.status(err.status).json(err.response);
-    }
+  async getStudentFromCache(@Param("id") studentId: string): Promise<IStudent> {
+    return this.studentService.getStudentFromCache(studentId);
+  }
+
+  @Get("/axios/test-axios")
+  async testAxios(): Promise<any> {
+    return this.studentService.testAxios();
+  }
+
+  @Get("/cookies/get-cookies")
+  async testCookies(@Req() request): Promise<any> {
+    return request.cookies;
   }
 }

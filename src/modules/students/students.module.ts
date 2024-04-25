@@ -4,6 +4,7 @@ import { StudentsController } from "./students.controller";
 import { MongooseModule } from "@nestjs/mongoose";
 import { StudentSchema } from "./schemas/student.schema";
 import { CacheModule } from "@nestjs/cache-manager";
+import { HttpModule } from "@nestjs/axios";
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { CacheModule } from "@nestjs/cache-manager";
       ttl: 100000,
       max: 100
     }),
+    HttpModule,
     MongooseModule.forFeature([{ name: "Student", schema: StudentSchema }])
   ],
   controllers: [StudentsController],

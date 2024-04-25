@@ -5,6 +5,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { ConfigModule } from "@nestjs/config";
 import { StudentsModule } from "./modules/students/students.module";
 import appConfig from "./configs/app.config";
+import { ScheduleModule } from "@nestjs/schedule";
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -12,7 +13,8 @@ import appConfig from "./configs/app.config";
       load: [appConfig]
     }),
     MongooseModule.forRoot(process.env.MONGO_URL),
-    StudentsModule
+    StudentsModule,
+    ScheduleModule.forRoot()
   ],
   controllers: [AppController],
   providers: [AppService]

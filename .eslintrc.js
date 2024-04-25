@@ -27,7 +27,6 @@ module.exports = {
         "trailingComma": "none",
         "tabWidth": 2,
         "endOfLine": "auto",
-        "useTabs": false,
         "singleQuote": false,
         "printWidth": 120,
         "jsxSingleQuote": true

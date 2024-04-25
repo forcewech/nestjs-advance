@@ -7,11 +7,17 @@ import { UpdateStudentDto } from "./dto/update-student.dto";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 import * as bcrypt from "bcrypt";
+import { HttpService } from "@nestjs/axios";
+import { catchError, firstValueFrom } from "rxjs";
+import { AxiosError } from "axios";
+import { Cron, CronExpression } from "@nestjs/schedule";
+
 @Injectable()
 export class StudentsService {
   constructor(
     @InjectModel("Student") private studentModel: Model<IStudent>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly httpService: HttpService
   ) {}
   async createStudent(createStudentDto: CreateStudentDto): Promise<IStudent> {
     const newStudent = await new this.studentModel({
@@ -56,5 +62,26 @@ export class StudentsService {
       throw new NotFoundException(`Student #${studentId} in cache not found`);
     }
     return existingStudentFromCache;
+  }
+  async filterClass(arrClass: number[]): Promise<number[]> {
+    return arrClass;
+  }
+  async testAxios(): Promise<any> {
+    const { data } = await firstValueFrom(
+      this.httpService.get("https://jsonplaceholder.typicode.com/users").pipe(
+        catchError((error: AxiosError) => {
+          throw "An error happened!";
+        })
+      )
+    );
+    return data;
+  }
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  handleEvery10Minutes() {
+    console.log("Task executed every 10 minutes");
+  }
+  @Cron("45 * * * * *")
+  handleEvery45Seconds() {
+    console.log("Task executed every 45 seconds");
   }
 }
