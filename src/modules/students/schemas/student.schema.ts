@@ -4,6 +4,8 @@ export class Student {
   @Prop()
   name: string;
   @Prop()
+  email: string;
+  @Prop()
   roleNumber: number;
   @Prop()
   class: number;

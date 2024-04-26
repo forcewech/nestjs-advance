@@ -10,13 +10,16 @@ import * as bcrypt from "bcrypt";
 import { HttpService } from "@nestjs/axios";
 import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError } from "axios";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import { InjectQueue } from "@nestjs/bull";
+import { Queue } from "bull";
 
 @Injectable()
 export class StudentsService {
   constructor(
     @InjectModel("Student") private studentModel: Model<IStudent>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @InjectQueue("send-mail")
+    private sendMailQueue: Queue,
     private readonly httpService: HttpService
   ) {}
   async createStudent(createStudentDto: CreateStudentDto): Promise<IStudent> {
@@ -26,6 +29,16 @@ export class StudentsService {
     });
     const studentId = newStudent._id.toString();
     await this.cacheManager.set(`key_${studentId}`, newStudent);
+    await this.sendMailQueue.add(
+      "register",
+      {
+        to: createStudentDto.email,
+        name: createStudentDto.name
+      },
+      {
+        removeOnComplete: true
+      }
+    );
     return newStudent.save();
   }
   async updateStudent(studentId: string, updateStudentDto: UpdateStudentDto): Promise<IStudent> {
@@ -75,13 +88,5 @@ export class StudentsService {
       )
     );
     return data;
-  }
-  @Cron(CronExpression.EVERY_10_MINUTES)
-  handleEvery10Minutes() {
-    console.log("Task executed every 10 minutes");
-  }
-  @Cron("45 * * * * *")
-  handleEvery45Seconds() {
-    console.log("Task executed every 45 seconds");
   }
 }
