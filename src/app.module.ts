@@ -10,6 +10,10 @@ import { BullModule } from "@nestjs/bull";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { join } from "path";
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
+import { MediaModule } from "./modules/media/media.module";
+import { FileModule } from "./modules/file/file.module";
+import { ServeStaticModule } from "@nestjs/serve-static";
+import { CloudinaryModule } from "./modules/cloudinary/cloudinary.module";
 
 @Module({
   imports: [
@@ -17,8 +21,13 @@ import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handleba
       isGlobal: true,
       load: [appConfig]
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, "..")
+    }),
     MongooseModule.forRoot(process.env.MONGO_URL),
     StudentsModule,
+    MediaModule,
+    FileModule,
     ScheduleModule.forRoot(),
     MailerModule.forRootAsync({
       useFactory: async (config: ConfigService) => ({
